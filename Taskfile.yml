@@ -1,0 +1,75 @@
+version: '3'
+
+env:
+  LOCAL_PACKAGES:
+    - ast
+
+tasks:
+  enumer:generate:
+    label: 'enumer:generate:{{.DIR}}'
+    cmds:
+      - go generate
+      - switch-check
+    desc: Generate and check the enum for the package
+    dir: '{{.DIR}}'
+
+  enumer:generate:all:
+    deps:
+      - for: 
+          var: LOCAL_PACKAGES
+        task: enumer:generate
+        vars:
+          DIR: '{{.ITEM}}'
+    desc: Generate and check the enum for all packages
+    dir: .
+
+  enumer:clean:
+    cmds:
+      - rm ./*/*enumer.go
+    desc: Clean the enum
+    dir: .
+    ignore_error: true
+
+  format:
+    cmds:
+      - go fmt ./...
+    desc: Format the project
+    dir: .
+
+  prepare:
+    cmds:
+      - task: enumer:clean
+      - task: enumer:generate:all
+      - task: format
+    desc: Prebuild the project
+    dir: .
+
+  build:
+    cmds:
+      - go build -o build/regchecker .
+    desc: Build the project
+    dir: .
+
+  clean:
+    cmds:
+      - rm build/regchecker
+    deps:
+      - enumer:clean
+    desc: Clean the project
+    dir: .
+    ignore_error: true
+
+  run:
+    cmds:
+      - ./build/regchecker
+    desc: Run the project
+    dir: .
+    deps:
+      - build
+
+  test:
+    cmds:
+      - go test ./...
+    desc: Run the tests
+    dir: .
+
