@@ -1,12 +1,10 @@
 package ast
 
-import (
-	"fmt"
-)
+// "fmt"
 
-//go:generate go run github.com/dmarkham/enumer -type=ASTKind
 type ASTKind int
 
+//go:generate enumer -type=ASTKind -json
 const (
 	ASTKindChar ASTKind = iota
 	ASTKindUnion
@@ -17,11 +15,11 @@ const (
 
 type AST struct {
 	Kind     ASTKind
-	Children []AST
+	Children []*AST
 	Value    string
 }
 
-func (a AST) String() string {
+func (a *AST) String() string {
 	switch a.Kind {
 	case ASTKindChar:
 		return a.Value
@@ -48,43 +46,28 @@ func (a AST) String() string {
 	panic("unreachable")
 }
 
-func PrintSampleAST() {
-	// a(b|c)*d
-	ast := AST{
-		Kind: ASTKindConcat,
-		Children: []AST{
-			{
-				Kind:  ASTKindChar,
-				Value: "a",
-			},
-			{
-				Kind: ASTKindStar,
-				Children: []AST{
-					{
-						Kind: ASTKindGroup,
-						Children: []AST{
-							{
-								Kind: ASTKindUnion,
-								Children: []AST{
-									{
-										Kind:  ASTKindChar,
-										Value: "b",
-									},
-									{
-										Kind:  ASTKindChar,
-										Value: "c",
-									},
-								},
-							},
-						},
-					},
-					{
-						Kind:  ASTKindChar,
-						Value: "d",
-					},
-				},
-			},
-		},
-	}
-	fmt.Println(ast.String())
+// func (a *AST) DebugString() string {
+// 	var children []string
+// 	for _, child := range a.Children {
+// 		children = append(children, child.DebugString())
+// 	}
+
+func NewCharAST(value string) *AST {
+	return &AST{Kind: ASTKindChar, Value: value}
+}
+
+func NewUnionAST(children []*AST) *AST {
+	return &AST{Kind: ASTKindUnion, Children: children}
+}
+
+func NewConcatAST(children []*AST) *AST {
+	return &AST{Kind: ASTKindConcat, Children: children}
+}
+
+func NewStarAST(child *AST) *AST {
+	return &AST{Kind: ASTKindStar, Children: []*AST{child}}
+}
+
+func NewGroupAST(child *AST) *AST {
+	return &AST{Kind: ASTKindGroup, Children: []*AST{child}}
 }

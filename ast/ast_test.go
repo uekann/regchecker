@@ -9,21 +9,67 @@ var astStringTests = []struct {
 	ast ast.AST
 	str string
 }{
+	// a
 	{ast.AST{Kind: ast.ASTKindChar, Value: "a"}, "a"},
-	{ast.AST{Kind: ast.ASTKindUnion, Children: []ast.AST{
-		{Kind: ast.ASTKindChar, Value: "a"},
-		{Kind: ast.ASTKindChar, Value: "b"},
+
+	// a|b
+	{ast.AST{Kind: ast.ASTKindUnion, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+		&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
 	}}, "a|b"},
-	{ast.AST{Kind: ast.ASTKindConcat, Children: []ast.AST{
-		{Kind: ast.ASTKindChar, Value: "a"},
-		{Kind: ast.ASTKindChar, Value: "b"},
+
+	// ab
+	{ast.AST{Kind: ast.ASTKindConcat, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+		&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
 	}}, "ab"},
-	{ast.AST{Kind: ast.ASTKindStar, Children: []ast.AST{
-		{Kind: ast.ASTKindChar, Value: "a"},
+
+	// a*
+	{ast.AST{Kind: ast.ASTKindStar, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
 	}}, "a*"},
-	{ast.AST{Kind: ast.ASTKindGroup, Children: []ast.AST{
-		{Kind: ast.ASTKindChar, Value: "a"},
+
+	// (a)
+	{ast.AST{Kind: ast.ASTKindGroup, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
 	}}, "(a)"},
+
+	// ab*
+	{ast.AST{Kind: ast.ASTKindConcat, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+		&ast.AST{Kind: ast.ASTKindStar, Children: []*ast.AST{
+			&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
+		}},
+	}}, "ab*"},
+
+	// a|b*
+	{ast.AST{Kind: ast.ASTKindUnion, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+		&ast.AST{Kind: ast.ASTKindStar, Children: []*ast.AST{
+			&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
+		}},
+	}}, "a|b*"},
+
+	// ab|c
+	{ast.AST{Kind: ast.ASTKindUnion, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindConcat, Children: []*ast.AST{
+			&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+			&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
+		}},
+		&ast.AST{Kind: ast.ASTKindChar, Value: "c"},
+	}}, "ab|c"},
+
+	// (a|b)*
+	{ast.AST{Kind: ast.ASTKindGroup, Children: []*ast.AST{
+		&ast.AST{Kind: ast.ASTKindStar, Children: []*ast.AST{
+			&ast.AST{Kind: ast.ASTKindGroup, Children: []*ast.AST{
+				&ast.AST{Kind: ast.ASTKindUnion, Children: []*ast.AST{
+					&ast.AST{Kind: ast.ASTKindChar, Value: "a"},
+					&ast.AST{Kind: ast.ASTKindChar, Value: "b"},
+				}},
+			}},
+		}},
+	}}, "((a|b)*)"},
 }
 
 func TestASTString(t *testing.T) {
