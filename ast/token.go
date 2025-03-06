@@ -1,5 +1,6 @@
 package ast
 
+//go:generate enumer -type=TokenKind -json
 type TokenKind int
 
 const (

@@ -118,6 +118,15 @@ var tokenTests = []struct {
 		{Kind: ast.TokenKindRBracket, Value: "]"},
 		{Kind: ast.TokenKindEOF},
 	}},
+	{"[^a-z]", []ast.Token{
+		{Kind: ast.TokenKindLBracket, Value: "["},
+		{Kind: ast.TokenKindCaret, Value: "^"},
+		{Kind: ast.TokenKindChar, Value: "a"},
+		{Kind: ast.TokenKindHyphen, Value: "-"},
+		{Kind: ast.TokenKindChar, Value: "z"},
+		{Kind: ast.TokenKindRBracket, Value: "]"},
+		{Kind: ast.TokenKindEOF},
+	}},
 	{"[\\n\\-]", []ast.Token{
 		{Kind: ast.TokenKindLBracket, Value: "["},
 		{Kind: ast.TokenKindEscape, Value: "\\n"},

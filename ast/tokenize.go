@@ -25,8 +25,9 @@ func (t *TokenizeError) Error() string {
 		return message + "brace not closed"
 	case TokenizeErrorKindBracketNotClosed:
 		return message + "bracket not closed"
+	default:
+		return message + "unknown error"
 	}
-	return message + "unknown error"
 }
 
 type Tokenizer struct {
@@ -86,7 +87,11 @@ func (t *Tokenizer) Tokenize() ([]Token, error) {
 		case "}":
 			t.tokens = append(t.tokens, Token{Kind: TokenKindChar, Value: "}"})
 		case "[":
-			t.tokens = append(t.tokens, Token{Kind: TokenKindLBracket, Value: "["})
+			tokens, err := t.tokenizeBracket()
+			if err != nil {
+				return nil, err
+			}
+			t.tokens = append(t.tokens, tokens...)
 		case "]":
 			t.tokens = append(t.tokens, Token{Kind: TokenKindRBracket, Value: "]"})
 		case "":
@@ -108,9 +113,6 @@ func (t *Tokenizer) tokenizeEscape() (Token, error) {
 
 func (t *Tokenizer) tokenizeBrace() ([]Token, error) {
 	var tokens []Token
-	if len(t.input) == 0 || t.input[0] != '{' {
-		panic("brace not opened")
-	}
 	tokens = append(tokens, Token{Kind: TokenKindLBrace, Value: "{"})
 	var number string
 	var s string
@@ -120,11 +122,15 @@ func (t *Tokenizer) tokenizeBrace() ([]Token, error) {
 		case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			number += s
 		case ",":
-			tokens = append(tokens, Token{Kind: TokenKindNumber, Value: number})
+			if number != "" {
+				tokens = append(tokens, Token{Kind: TokenKindNumber, Value: number})
+			}
 			tokens = append(tokens, Token{Kind: TokenKindComma, Value: ","})
 			number = ""
 		case "}":
-			tokens = append(tokens, Token{Kind: TokenKindNumber, Value: number})
+			if number != "" {
+				tokens = append(tokens, Token{Kind: TokenKindNumber, Value: number})
+			}
 			tokens = append(tokens, Token{Kind: TokenKindRBrace, Value: "}"})
 			return tokens, nil
 		default:
@@ -135,9 +141,6 @@ func (t *Tokenizer) tokenizeBrace() ([]Token, error) {
 
 func (t *Tokenizer) tokenizeBracket() ([]Token, error) {
 	var tokens []Token
-	if len(t.input) == 0 || t.input[0] != '[' {
-		panic("bracket not opened")
-	}
 	tokens = append(tokens, Token{Kind: TokenKindLBracket, Value: "["})
 	var s string
 	for {
@@ -154,6 +157,8 @@ func (t *Tokenizer) tokenizeBracket() ([]Token, error) {
 			tokens = append(tokens, token)
 		case "-":
 			tokens = append(tokens, Token{Kind: TokenKindHyphen, Value: "-"})
+		case "^":
+			tokens = append(tokens, Token{Kind: TokenKindCaret, Value: "^"})
 		default:
 			tokens = append(tokens, Token{Kind: TokenKindChar, Value: s})
 		}
